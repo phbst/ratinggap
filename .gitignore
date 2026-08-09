@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+
+# Raw review text is a local crawl artifact — we publish the derived summary
+# (data/apps.json) rather than redistributing reviews wholesale.
+data/reviews-cache.json

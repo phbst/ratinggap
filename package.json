@@ -1,0 +1,14 @@
+{
+  "name": "ratinggap",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Find app ideas that already work: top-grossing App Store apps with the worst ratings, and the complaints a better version has to fix.",
+  "scripts": {
+    "fetch": "node scripts/fetch.mjs",
+    "build": "node scripts/build.mjs",
+    "all": "npm run fetch && npm run build",
+    "serve": "node --run build && node scripts/serve.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

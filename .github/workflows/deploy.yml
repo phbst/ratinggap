@@ -1,0 +1,54 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+  # Refresh the data weekly. New numbers + new teardowns give crawlers a reason to come back.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Only re-pull from Apple on the schedule / manual runs — a plain push rebuilds
+      # from the committed snapshot so deploys stay fast and reproducible.
+      - name: Refresh App Store data
+        if: github.event_name != 'push'
+        run: node scripts/fetch.mjs
+
+      - name: Build site
+        env:
+          BASE_PATH: ${{ vars.BASE_PATH }}
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
+          GA_ID: ${{ vars.GA_ID }}
+        run: node scripts/build.mjs
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
