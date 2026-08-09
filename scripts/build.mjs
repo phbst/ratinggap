@@ -2,7 +2,7 @@
 // No framework, no runtime deps — every page ships as plain HTML so Google can
 // index it on first crawl (养网站防老 第3/5步: 静态页面 + 内链 + 结构化数据).
 
-import { readFileSync, writeFileSync, mkdirSync, cpSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, cpSync, existsSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -17,6 +17,10 @@ const BASE = !rawBase ? '/ratinggap' : rawBase === '/' ? '' : rawBase.replace(/\
 const ORIGIN = (process.env.SITE_ORIGIN || 'https://phbst.github.io').replace(/\/+$/, '')
 const SITE = ORIGIN + BASE
 const GA_ID = process.env.GA_ID || ''
+// Search Console ownership. Either method works for a URL-prefix property:
+// set GSC_VERIFICATION to the token from the "HTML tag" option, or drop the
+// google<token>.html file Google hands you into src/ and it ships to the root.
+const GSC = (process.env.GSC_VERIFICATION || '').replace(/^<meta[^>]*content=["']?|["']?\s*\/?>$/g, '').trim()
 
 const data = JSON.parse(readFileSync(join(ROOT, 'data', 'apps.json'), 'utf8'))
 const APPS = data.apps
@@ -65,6 +69,7 @@ function layout ({ title, description, canonical, body, jsonld = [], breadcrumb 
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${canonical}">
+${GSC ? `<meta name="google-site-verification" content="${esc(GSC)}">` : ''}
 <meta property="og:type" content="website">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
@@ -527,7 +532,12 @@ writeFileSync(join(OUT, '.nojekyll'), '')
 for (const f of ['style.css', 'app.js']) cpSync(join(ROOT, 'src', f), join(OUT, f))
 if (existsSync(join(ROOT, 'src', 'CNAME'))) cpSync(join(ROOT, 'src', 'CNAME'), join(OUT, 'CNAME'))
 
+// Verification files that must sit at the site root, byte-for-byte as issued.
+const verifiers = readdirSync(join(ROOT, 'src'))
+  .filter(f => /^(google[\w-]*\.html|BingSiteAuth\.xml|IndexNow[\w-]*\.txt|[a-f0-9]{32}\.txt)$/i.test(f))
+for (const f of verifiers) cpSync(join(ROOT, 'src', f), join(OUT, f))
+
 console.log(`built ${urls.length} pages -> dist/`)
 console.log(`  1 home, 1 method, 1 complaint index`)
 console.log(`  ${APPS.length} app teardowns, ${genres.length} categories, ${complaintPages} complaint hubs`)
-console.log(`  base=${BASE || '(root)'}  origin=${ORIGIN}  ga=${GA_ID || 'not set'}`)
+console.log(`  base=${BASE || '(root)'}  origin=${ORIGIN}  ga=${GA_ID || 'not set'}  gsc=${GSC ? 'meta tag' : verifiers.length ? verifiers.join(', ') : 'not set'}`)

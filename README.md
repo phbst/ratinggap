@@ -56,6 +56,10 @@ Build-time configuration, all optional:
 | `BASE_PATH` | `/ratinggap` | Set to `/` when serving from a domain root. Empty/unset keeps the default, because CI injects undefined variables as empty strings |
 | `SITE_ORIGIN` | `https://phbst.github.io` | Origin used in canonicals and the sitemap |
 | `GA_ID` | *(none)* | Google Analytics measurement id |
+| `GSC_VERIFICATION` | *(none)* | Search Console token. Paste either the bare token or the whole `<meta>` tag Google shows — both work |
+
+For Search Console's file method instead, drop the `google<token>.html` Google issues into `src/`
+and it ships to the site root untouched. `BingSiteAuth.xml` and IndexNow key files work the same way.
 
 The GitHub Actions workflow rebuilds on push and re-pulls Apple data every Monday, so the rankings stay
 current without anyone touching it.

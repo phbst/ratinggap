@@ -55,6 +55,7 @@ jobs:
           BASE_PATH: ${{ vars.BASE_PATH }}
           SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
           GA_ID: ${{ vars.GA_ID }}
+          GSC_VERIFICATION: ${{ vars.GSC_VERIFICATION }}
         run: node scripts/build.mjs
 
       - uses: actions/upload-pages-artifact@v3
