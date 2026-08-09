@@ -53,7 +53,7 @@ Build-time configuration, all optional:
 
 | Variable | Default | Use |
 | --- | --- | --- |
-| `BASE_PATH` | `/ratinggap` | Set to `''` when serving from a domain root |
+| `BASE_PATH` | `/ratinggap` | Set to `/` when serving from a domain root. Empty/unset keeps the default, because CI injects undefined variables as empty strings |
 | `SITE_ORIGIN` | `https://phbst.github.io` | Origin used in canonicals and the sitemap |
 | `GA_ID` | *(none)* | Google Analytics measurement id |
 

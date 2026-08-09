@@ -9,11 +9,14 @@ import { fileURLToPath } from 'node:url'
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const OUT = join(ROOT, 'dist')
 
-// Project pages live under /ratinggap/. Set BASE_PATH='' when a custom domain is attached.
-const BASE = process.env.BASE_PATH ?? '/ratinggap'
-const ORIGIN = process.env.SITE_ORIGIN ?? 'https://phbst.github.io'
+// Project pages live under /ratinggap/. Set BASE_PATH=/ when serving from a domain root.
+// GitHub Actions injects undefined repo variables as empty strings, so `??` is not enough
+// here — an unset variable must fall back, and only an explicit "/" means root.
+const rawBase = process.env.BASE_PATH
+const BASE = !rawBase ? '/ratinggap' : rawBase === '/' ? '' : rawBase.replace(/\/+$/, '')
+const ORIGIN = (process.env.SITE_ORIGIN || 'https://phbst.github.io').replace(/\/+$/, '')
 const SITE = ORIGIN + BASE
-const GA_ID = process.env.GA_ID ?? ''
+const GA_ID = process.env.GA_ID || ''
 
 const data = JSON.parse(readFileSync(join(ROOT, 'data', 'apps.json'), 'utf8'))
 const APPS = data.apps
