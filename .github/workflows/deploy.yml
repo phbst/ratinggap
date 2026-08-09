@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -28,9 +28,27 @@ jobs:
 
       # Only re-pull from Apple on the schedule / manual runs — a plain push rebuilds
       # from the committed snapshot so deploys stay fast and reproducible.
+      #
+      # This has to run in CI rather than locally: Apple rate-limits the customerreviews
+      # feed per IP and blocks a developer machine within a few hundred requests.
       - name: Refresh App Store data
         if: github.event_name != 'push'
         run: node scripts/fetch.mjs
+
+      # Commit the refreshed snapshot back so a later push-triggered deploy serves the
+      # same data the scheduled run produced, instead of reverting to a stale file.
+      - name: Commit refreshed snapshot
+        if: github.event_name != 'push'
+        run: |
+          if git diff --quiet -- data/apps.json; then
+            echo "no data change"
+          else
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/apps.json
+            git commit -m "Refresh App Store snapshot ($(date -u +%Y-%m-%d))"
+            git push
+          fi
 
       - name: Build site
         env:
